@@ -24,4 +24,10 @@ describe('AppComponent', () => {
     const compiled = fixture.debugElement.nativeElement;
     expect(compiled.querySelector('h1').textContent).toContain('Welcome to app!');
   }));
+  it('should have links to the tutorials', async(() => {
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+      const compiled = fixture.debugElement.nativeElement;
+      expect(compiled.querySelector('a').textContent).toContain('Tour of Heroes');
+  }));
 });
