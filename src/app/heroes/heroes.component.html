@@ -12,8 +12,14 @@
   <label>Hero name:
     <input #heroName />
   </label>
+  <label>Email:
+    <input #email type="email"/>
+  </label>
+  <label>Date of birth:
+    <input #dob type="date"/>
+  </label>
   <!-- (click) passes input value to add() and then clears the input -->
-  <button (click)="add(heroName.value); heroName.value=''">
+  <button (click)="add(heroName.value, email.value, dob.value); heroName.value=''; email.value=''; dob.value=''">
     add
   </button>
 </div>

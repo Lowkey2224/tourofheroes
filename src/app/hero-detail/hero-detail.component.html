@@ -6,6 +6,16 @@
       <input [(ngModel)]="hero.name" placeholder="name"/>
     </label>
   </div>
+  <div>
+    <label>Email:
+      <input [(ngModel)]="hero.email" placeholder="email"/>
+    </label>
+  </div>
+  <div>
+    <label>dob:
+      <input [ngModel]="hero.dateOfBirth | date:'yyyy-MM-dd'" placeholder="dateOfBirth" (ngModelChange)="hero.dateOfBirth = $event" type="date"/>
+    </label>
+  </div>
   <button (click)="goBack()">go back</button>
   <button (click)="save()">save</button>
 </div>
