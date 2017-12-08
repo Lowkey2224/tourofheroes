@@ -27,8 +27,8 @@ export class HeroService {
   }
 
   /** GET heroes from the server */
-  getHeroes(): Observable<Hero[]> {
-    const url = `${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM`;
+  getHeroes(page: number): Observable<Hero[]> {
+    const url = `${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM&itemsPerPage=15&page=${page}`;
 
     return this.http.get<Hero[]>(url, httpOptions)
       .pipe(

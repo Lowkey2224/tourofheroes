@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms'; // <-- NgModel lives here
 import { HttpClientModule } from '@angular/common/http';
 import { HeroService } from './hero.service';
+import { RoleService } from './role.service';
 import { AppComponent } from './app.component';
 import { HeroesComponent } from './heroes/heroes.component';
 import { HeroDetailComponent } from './hero-detail/hero-detail.component';
@@ -11,6 +12,7 @@ import { MessageService } from './message.service';
 import { AppRoutingModule } from './app-routing.module';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { HeroSearchComponent } from './hero-search/hero-search.component';
+import { RolesComponent } from './roles/roles.component';
 
 
 @NgModule({
@@ -20,7 +22,8 @@ import { HeroSearchComponent } from './hero-search/hero-search.component';
     HeroDetailComponent,
     MessagesComponent,
     DashboardComponent,
-    HeroSearchComponent
+    HeroSearchComponent,
+    RolesComponent
   ],
   imports: [
     BrowserModule,
@@ -35,7 +38,7 @@ import { HeroSearchComponent } from './hero-search/hero-search.component';
 //      InMemoryDataService, {dataEncapsulation: false}
 //    )
   ],
-  providers: [HeroService, MessageService],
+  providers: [HeroService, MessageService, RoleService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

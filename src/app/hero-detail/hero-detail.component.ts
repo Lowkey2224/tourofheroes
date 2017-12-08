@@ -1,9 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
+import {Component, OnInit, Input} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {Location} from '@angular/common';
 
-import { HeroService } from '../hero.service';
-import { Hero } from '../hero';
+import {HeroService} from '../hero.service';
+import {Hero} from '../hero';
+import {Role} from '../role';
+import {RoleService} from '../role.service';
 
 
 @Component({
@@ -14,14 +16,17 @@ import { Hero } from '../hero';
 export class HeroDetailComponent implements OnInit {
 
   @Input() hero: Hero;
+  roles: Role[];
 
   constructor(private route: ActivatedRoute,
               private heroService: HeroService,
+              private roleService: RoleService,
               private location: Location) {
   }
 
   ngOnInit(): void {
     this.getHero();
+    this.getRoles();
   }
 
   getHero(): void {
@@ -37,6 +42,14 @@ export class HeroDetailComponent implements OnInit {
   save(): void {
     this.heroService.updateHero(this.hero)
       .subscribe(() => this.goBack());
+  }
+
+  getRoles(): void {
+    this.roleService.getRoles()
+      .subscribe(function (roles) {
+        this.roles = roles;
+        console.log(this.roles);
+      });
   }
 
 }

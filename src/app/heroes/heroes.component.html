@@ -7,6 +7,8 @@
     <button class="delete" title="delete hero" (click)="delete(hero)">x</button>
   </li>
 </ul>
+<button *ngIf="page>1" (click)="previousPage()">prev</button>
+<button (click)="nextPage()">next</button>
 
 <div>
   <label>Hero name:
