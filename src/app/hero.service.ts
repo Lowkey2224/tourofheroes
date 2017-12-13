@@ -6,18 +6,21 @@ import {catchError, map, tap} from 'rxjs/operators';
 
 import {Hero} from './hero';
 import {MessageService} from './message.service';
+import {RoleService} from './role.service';
+import { environment } from '../environments/environment';
+
 
 
 const httpOptions = {headers: new HttpHeaders({'Content-Type': 'application/json'})};
 
 @Injectable()
 export class HeroService {
-
-  private heroesUrl = 'http://api.app/api/people';  // URL to web api
+  private heroesUrl = `${environment.apiUrl}/api/people`;  // URL to web api
 
 
   constructor(private http: HttpClient,
-              private messageService: MessageService) {
+              private messageService: MessageService,
+              private roleService: RoleService) {
   }
 
   private static transformHero(hero) {
@@ -26,6 +29,21 @@ export class HeroService {
     return hero;
   }
 
+  private createBody(hero: Hero) {
+    const roles = [];
+    for (const role of hero.roles) {
+
+      roles.push(this.roleService.transformRoleToResource(role));
+    }
+    hero.roles = roles;
+    return hero;
+  }
+
+  private heroFactory(hero: Hero): Hero {
+    return this.roleService.getRolesForHero(hero);
+      // .subscribe(roles => hero.roles = roles);
+    // return hero;
+  }
   /** GET heroes from the server */
   getHeroes(page: number): Observable<Hero[]> {
     const url = `${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM&itemsPerPage=15&page=${page}`;
@@ -33,6 +51,7 @@ export class HeroService {
     return this.http.get<Hero[]>(url, httpOptions)
       .pipe(
         map(result => result['hydra:member']),
+        map(result => result), // Get additional Resources
         tap(_ => this.log(`fetched heroes`)),
         catchError(this.handleError('getHeroes', []))
       );
@@ -43,6 +62,7 @@ export class HeroService {
     const url = `${this.heroesUrl}/${id}?XDEBUG_SESSION_START=PHPSTORM`;
     return this.http.get<Hero>(url, httpOptions).pipe(
       map(result => HeroService.transformHero(result)),
+      map(hero => this.heroFactory(hero)),
       tap(_ => this.log(`fetched hero id=${id}`)),
       catchError(this.handleError<Hero>(`getHero id=${id}`))
     );
@@ -50,9 +70,10 @@ export class HeroService {
 
   /** PUT: update the hero on the server */
   updateHero(hero: Hero): Observable<any> {
+    const body = this.createBody(hero);
     const url = `${this.heroesUrl}/${hero.id}?XDEBUG_SESSION_START=PHPSTORM`;
     console.log(httpOptions);
-    return this.http.put(url, hero, httpOptions).pipe(
+    return this.http.put(url, body, httpOptions).pipe(
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
     );
@@ -60,7 +81,8 @@ export class HeroService {
 
   /** POST: add a new hero to the server */
   addHero(hero: Hero): Observable<Hero> {
-    return this.http.post<Hero>(`${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM`, hero, httpOptions).pipe(
+    const body = this.createBody(hero);
+    return this.http.post<Hero>(`${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM`, body, httpOptions).pipe(
       tap((localHero: Hero) => this.log(`added hero w/ id=${localHero.id}`)),
       catchError(this.handleError<Hero>('addHero'))
     );

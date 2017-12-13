@@ -1,22 +1,44 @@
-<div *ngIf="hero">
-  <h2>{{ hero.name | uppercase }} Details</h2>
-  <div><span>id: </span>{{ hero.id }}</div>
-  <div>
-    <label>name:
-      <input [(ngModel)]="hero.name" placeholder="name"/>
-    </label>
-  </div>
-  <div>
-    <label>Email:
-      <input [(ngModel)]="hero.email" placeholder="email"/>
-    </label>
-  </div>
-  <div>
-    <label>dob:
-      <input [ngModel]="hero.dateOfBirth | date:'yyyy-MM-dd'" placeholder="dateOfBirth" (ngModelChange)="hero.dateOfBirth = $event" type="date"/>
-    </label>
+<div class="container" *ngIf="hero" style="padding-top: 1em">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">{{ hero.name | uppercase }} Details</h2>
+    </div>
+    <div class="panel-body">
+      <form #heroForm>
+        <div>
+          <label for="name">name:
+            <input [(ngModel)]="hero.name" placeholder="name" name="name" required id="name" #name="ngModel"
+                   class="form-control"/>
+          </label>
+          <div [hidden]="name.valid || name.pristine"
+               class="alert alert-danger">
+            Name is required
+          </div>
+        </div>
+        <div>
+          <label for="email">Email:
+            <input [(ngModel)]="hero.email" placeholder="email" name="email" required id="email" class="form-control"/>
+          </label>
+        </div>
+        <div>
+          <label for="dob">dob:
+            <input [ngModel]="hero.dateOfBirth | date:'yyyy-MM-dd'" placeholder="dateOfBirth" name="dob" required
+                   id="dob"
+                   (ngModelChange)="hero.dateOfBirth = $event" type="date" class="form-control"/>
+          </label>
+        </div>
+        <div>
+          <label for="roles">roles
+            <select [(ngModel)]="hero.roles" multiple name="roles" id="roles" class="form-control">
+              <option *ngFor="let role of roles" [value]="role" [selected]="hasRole(role)">{{role.name}}</option>
+            </select>
+          </label>
+        </div>
+      </form>
+    </div>
   </div>
   <button (click)="goBack()">go back</button>
   <button (click)="save()">save</button>
-  <app-roles></app-roles>
 </div>
+
+<!--<app-roles></app-roles>-->

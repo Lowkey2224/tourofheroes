@@ -5,6 +5,8 @@ import {of} from 'rxjs/observable/of';
 import {catchError, map, tap} from 'rxjs/operators';
 import {MessageService} from './message.service';
 import {Role} from './role';
+import {Hero} from './hero';
+import {environment} from '../environments/environment';
 
 
 const httpOptions = {headers: new HttpHeaders({'Content-Type': 'application/json'})};
@@ -12,7 +14,8 @@ const httpOptions = {headers: new HttpHeaders({'Content-Type': 'application/json
 @Injectable()
 export class RoleService {
 
-  private rolesUrl = 'http://api.app/api/roles';  // URL to web api
+  private endPoint = '/api/roles';
+  private rolesUrl = `${environment.apiUrl}${this.endPoint}`;  // URL to web api
 
 
   constructor(private http: HttpClient,
@@ -73,6 +76,23 @@ export class RoleService {
       tap(_ => this.log(`deleted role id=${id}`)),
       catchError(this.handleError<Role>('deleteRole'))
     );
+  }
+
+  getRolesForHero(hero: Hero): Hero {
+    const roles = [];
+    for (const endpoint of hero.roles) {
+      this.http.get(`${environment.apiUrl}${endpoint}`).pipe(
+        tap(_ => this.log(`found roles for Hero "${hero.name}"`)),
+        catchError(this.handleError<Role[]>('searchroles', []))
+      ).subscribe(result => roles.push(result));
+    }
+    hero.roles = roles;
+
+    return hero;
+  }
+
+  transformRoleToResource(role: Role): string {
+    return `${this.endPoint}/${role.id}`;
   }
 
   /* GET roles whose name contains search term */

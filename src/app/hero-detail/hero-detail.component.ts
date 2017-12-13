@@ -46,10 +46,18 @@ export class HeroDetailComponent implements OnInit {
 
   getRoles(): void {
     this.roleService.getRoles()
-      .subscribe(function (roles) {
-        this.roles = roles;
-        console.log(this.roles);
-      });
+      .subscribe(roles => this.roles = roles);
+  }
+
+  hasRole(roleParam: Role): boolean {
+    let result = false;
+    for (const role of this.hero.roles) {
+      if (role.id === roleParam.id) {
+        result = true;
+      }
+    }
+
+    return result;
   }
 
 }
