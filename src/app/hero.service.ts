@@ -7,11 +7,8 @@ import {catchError, map, tap} from 'rxjs/operators';
 import {Hero} from './hero';
 import {MessageService} from './message.service';
 import {RoleService} from './role.service';
-import { environment } from '../environments/environment';
-
-
-
-const httpOptions = {headers: new HttpHeaders({'Content-Type': 'application/json'})};
+import {environment} from '../environments/environment';
+import {AuthenticationService} from './authentication/authentication.service';
 
 @Injectable()
 export class HeroService {
@@ -20,7 +17,8 @@ export class HeroService {
 
   constructor(private http: HttpClient,
               private messageService: MessageService,
-              private roleService: RoleService) {
+              private roleService: RoleService,
+              private authenticationService: AuthenticationService) {
   }
 
   private static transformHero(hero) {
@@ -29,26 +27,10 @@ export class HeroService {
     return hero;
   }
 
-  private createBody(hero: Hero) {
-    const roles = [];
-    for (const role of hero.roles) {
-
-      roles.push(this.roleService.transformRoleToResource(role));
-    }
-    hero.roles = roles;
-    return hero;
-  }
-
-  private heroFactory(hero: Hero): Hero {
-    return this.roleService.getRolesForHero(hero);
-      // .subscribe(roles => hero.roles = roles);
-    // return hero;
-  }
   /** GET heroes from the server */
   getHeroes(page: number): Observable<Hero[]> {
     const url = `${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM&itemsPerPage=15&page=${page}`;
-
-    return this.http.get<Hero[]>(url, httpOptions)
+    return this.http.get<Hero[]>(url, this.httpOptions())
       .pipe(
         map(result => result['hydra:member']),
         map(result => result), // Get additional Resources
@@ -60,7 +42,7 @@ export class HeroService {
   /** GET hero by id. Will 404 if id not found */
   getHero(id: number): Observable<Hero> {
     const url = `${this.heroesUrl}/${id}?XDEBUG_SESSION_START=PHPSTORM`;
-    return this.http.get<Hero>(url, httpOptions).pipe(
+    return this.http.get<Hero>(url, this.httpOptions()).pipe(
       map(result => HeroService.transformHero(result)),
       map(hero => this.heroFactory(hero)),
       tap(_ => this.log(`fetched hero id=${id}`)),
@@ -72,8 +54,8 @@ export class HeroService {
   updateHero(hero: Hero): Observable<any> {
     const body = this.createBody(hero);
     const url = `${this.heroesUrl}/${hero.id}?XDEBUG_SESSION_START=PHPSTORM`;
-    console.log(httpOptions);
-    return this.http.put(url, body, httpOptions).pipe(
+    console.log(this.httpOptions());
+    return this.http.put(url, body, this.httpOptions()).pipe(
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
     );
@@ -82,7 +64,7 @@ export class HeroService {
   /** POST: add a new hero to the server */
   addHero(hero: Hero): Observable<Hero> {
     const body = this.createBody(hero);
-    return this.http.post<Hero>(`${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM`, body, httpOptions).pipe(
+    return this.http.post<Hero>(`${this.heroesUrl}?XDEBUG_SESSION_START=PHPSTORM`, body, this.httpOptions()).pipe(
       tap((localHero: Hero) => this.log(`added hero w/ id=${localHero.id}`)),
       catchError(this.handleError<Hero>('addHero'))
     );
@@ -93,7 +75,7 @@ export class HeroService {
     const id = typeof hero === 'number' ? hero : hero.id;
     const url = `${this.heroesUrl}/${id}`;
 
-    return this.http.delete<Hero>(url, httpOptions).pipe(
+    return this.http.delete<Hero>(url, this.httpOptions()).pipe(
       tap(_ => this.log(`deleted hero id=${id}`)),
       catchError(this.handleError<Hero>('deleteHero'))
     );
@@ -110,6 +92,22 @@ export class HeroService {
       tap(_ => this.log(`found heroes matching "${term}"`)),
       catchError(this.handleError<Hero[]>('searchHeroes', []))
     );
+  }
+
+  private createBody(hero: Hero) {
+    const roles = [];
+    for (const role of hero.roles) {
+
+      roles.push(this.roleService.transformRoleToResource(role));
+    }
+    hero.roles = roles;
+    return hero;
+  }
+
+  private heroFactory(hero: Hero): Hero {
+    return this.roleService.getRolesForHero(hero);
+    // .subscribe(roles => hero.roles = roles);
+    // return hero;
   }
 
   /** Log a HeroService message with the MessageService */
@@ -134,6 +132,16 @@ export class HeroService {
 
       // Let the app keep running by returning an empty result.
       return of(result as T);
+    };
+  }
+
+  private httpOptions() {
+
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + this.authenticationService.token
+      })
     };
   }
 }

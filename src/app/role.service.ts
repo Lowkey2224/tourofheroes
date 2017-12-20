@@ -7,9 +7,8 @@ import {MessageService} from './message.service';
 import {Role} from './role';
 import {Hero} from './hero';
 import {environment} from '../environments/environment';
+import {AuthenticationService} from './authentication/authentication.service';
 
-
-const httpOptions = {headers: new HttpHeaders({'Content-Type': 'application/json'})};
 
 @Injectable()
 export class RoleService {
@@ -19,7 +18,8 @@ export class RoleService {
 
 
   constructor(private http: HttpClient,
-              private messageService: MessageService) {
+              private messageService: MessageService,
+              private authenticationService: AuthenticationService) {
   }
 
   private static transformRole(role) {
@@ -31,7 +31,7 @@ export class RoleService {
   getRoles(): Observable<Role[]> {
     const url = `${this.rolesUrl}?XDEBUG_SESSION_START=PHPSTORM`;
 
-    return this.http.get<Role[]>(url, httpOptions)
+    return this.http.get<Role[]>(url, this.httpOptions())
       .pipe(
         map(result => result['hydra:member']),
         tap(_ => this.log(`fetched Roles`)),
@@ -42,7 +42,7 @@ export class RoleService {
   /** GET role by id. Will 404 if id not found */
   getRole(id: number): Observable<Role> {
     const url = `${this.rolesUrl}/${id}?XDEBUG_SESSION_START=PHPSTORM`;
-    return this.http.get<Role>(url, httpOptions).pipe(
+    return this.http.get<Role>(url, this.httpOptions()).pipe(
       map(result => RoleService.transformRole(result)),
       tap(_ => this.log(`fetched role id=${id}`)),
       catchError(this.handleError<Role>(`getRole id=${id}`))
@@ -52,8 +52,8 @@ export class RoleService {
   /** PUT: update the role on the server */
   updateRole(role: Role): Observable<any> {
     const url = `${this.rolesUrl}/${role.id}?XDEBUG_SESSION_START=PHPSTORM`;
-    console.log(httpOptions);
-    return this.http.put(url, role, httpOptions).pipe(
+    console.log(this.httpOptions());
+    return this.http.put(url, role, this.httpOptions()).pipe(
       tap(_ => this.log(`updated role id=${role.id}`)),
       catchError(this.handleError<any>('updateRole'))
     );
@@ -61,7 +61,7 @@ export class RoleService {
 
   /** POST: add a new role to the server */
   addRole(role: Role): Observable<Role> {
-    return this.http.post<Role>(`${this.rolesUrl}?XDEBUG_SESSION_START=PHPSTORM`, role, httpOptions).pipe(
+    return this.http.post<Role>(`${this.rolesUrl}?XDEBUG_SESSION_START=PHPSTORM`, role, this.httpOptions()).pipe(
       tap((localRole: Role) => this.log(`added role w/ id=${localRole.id}`)),
       catchError(this.handleError<Role>('addRole'))
     );
@@ -72,7 +72,7 @@ export class RoleService {
     const id = typeof role === 'number' ? role : role.id;
     const url = `${this.rolesUrl}/${id}`;
 
-    return this.http.delete<Role>(url, httpOptions).pipe(
+    return this.http.delete<Role>(url, this.httpOptions()).pipe(
       tap(_ => this.log(`deleted role id=${id}`)),
       catchError(this.handleError<Role>('deleteRole'))
     );
@@ -130,6 +130,16 @@ export class RoleService {
 
       // Let the app keep running by returning an empty result.
       return of(result as T);
+    };
+  }
+
+  private httpOptions() {
+
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + this.authenticationService.token
+      })
     };
   }
 }
